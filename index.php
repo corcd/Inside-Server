@@ -29,6 +29,7 @@ $output = "hello";
 socket_write($spawn, $output, strlen($output)) or die("Could not write output\n");
 
 //保存最新棋局
+echo $input;
 file_put_contents('lastStep.chess', print_r($input,true));
 
 // 关闭sockets
