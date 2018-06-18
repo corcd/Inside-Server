@@ -1,55 +1,37 @@
 <?php
 
-//确保在连接客户端时不会超时
-set_time_limit(0);
- 
-$ip = '0.0.0.0';
+// 设置一些基本的变量
+$host = "0.0.0.0";
 $port = 1600;
 
+// 设置超时时间
+set_time_limit(0);
 
-/*----------------    以下操作都是手册上的    -------------------*/
-if(($sock = socket_create(AF_INET,SOCK_STREAM,SOL_TCP)) < 0) {
-    echo "socket_create() 失败的原因是:".socket_strerror($sock)."\n";
-}
- 
-if(($ret = socket_bind($sock,$ip,$port)) < 0) {
-    echo "socket_bind() 失败的原因是:".socket_strerror($ret)."\n";
-}
- 
-if(($ret = socket_listen($sock,4)) < 0) {
-    echo "socket_listen() 失败的原因是:".socket_strerror($ret)."\n";
- }
- 
-$count = 0;
- 
-do {
-    if (($msgsock = socket_accept($sock)) < 0) {
-         echo "socket_accept() failed: reason: " . socket_strerror($msgsock) . "\n";
-         break;
-    } else {
-         
-         //发到客户端
-         $msg ="测试成功！\n";
-         socket_write($msgsock, $msg, strlen($msg));
-         
-         echo "测试成功了啊\n";
-         $buf = socket_read($msgsock,8192);
-         
-         
-         $talkback = "收到的信息:$buf\n";
-         echo $talkback;
-         
-         if(++$count >= 5){
-             break;
-         };
-         
-     
-    }
-     //echo $buf;
-    socket_close($msgsock);
- 
-} while (true);
- 
-socket_close($sock);
+// 创建一个Socket
+$socket = socket_create(AF_INET, SOCK_STREAM, 0) or die("Could not createsocket\n");
+
+//绑定Socket到端口
+$result = socket_bind($socket, $host, $port) or die("Could not bind tosocket\n");
+
+// 开始监听链接
+$result = socket_listen($socket, 3) or die("Could not set up socketlistener\n");
+
+// accept incoming connections
+// 另一个Socket来处理通信
+$spawn = socket_accept($socket) or die("Could not accept incomingconnection\n");
+// 获得客户端的输入
+$input = socket_read($spawn, 1024) or die("Could not read input\n");
+$jsonObj = json_decode($input, true);
+
+//读取上一步棋局，处理客户端输入并返回结果
+$output = file_get_contents('lastStep.chess');
+socket_write($spawn, $output, strlen ($output)) or die("Could not write output\n");
+
+//保存最新棋局
+file_put_contents('lastStep.chess', print_r($jsonObj,true));
+
+// 关闭sockets
+socket_close($spawn);
+socket_close($socket);
 
 ?>
