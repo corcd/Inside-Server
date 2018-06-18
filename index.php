@@ -1,7 +1,7 @@
 <?php
 
 //服务器信息 
-$server = 'udp://39.108.176.84:12345'; 
+$server = 'udp://39.108.176.84/Inside-Server:12345'; 
 //消息结束符号 
 $msg_eof = "\n"; 
 $socket = stream_socket_server($server, $errno, $errstr, STREAM_SERVER_BIND); 
