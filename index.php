@@ -1,24 +1,55 @@
 <?php
 
-//服务器信息 
-$server = 'udp://39.108.176.84/Inside-Server:12345'; 
-//消息结束符号 
-$msg_eof = "\n"; 
-$socket = stream_socket_server($server, $errno, $errstr, STREAM_SERVER_BIND); 
-if (!$socket) { 
-    die("$errstr ($errno)"); 
-} 
-   
-do { 
-    //接收客户端发来的信息 
-    $inMsg = stream_socket_recvfrom($socket, 1024, 0, $peer); 
-    //服务端打印出相关信息 
-    echo "Client : $peer\n"; 
-    echo "Receive : {$inMsg}"; 
-    //给客户端发送信息 
-    $outMsg = substr($inMsg, 0, (strrpos($inMsg, $msg_eof))).' -- '.date("D M j H:i:s Y\r\n"); 
-    stream_socket_sendto($socket, $outMsg, 0, $peer); 
-       
-} while ($inMsg !== false);
+//确保在连接客户端时不会超时
+set_time_limit(0);
+ 
+$ip = '39.108.176.84/Inside-Server';
+$port = 12345;
+
+
+/*----------------    以下操作都是手册上的    -------------------*/
+if(($sock = socket_create(AF_INET,SOCK_STREAM,SOL_TCP)) < 0) {
+    echo "socket_create() 失败的原因是:".socket_strerror($sock)."\n";
+}
+ 
+if(($ret = socket_bind($sock,$ip,$port)) < 0) {
+    echo "socket_bind() 失败的原因是:".socket_strerror($ret)."\n";
+}
+ 
+if(($ret = socket_listen($sock,4)) < 0) {
+    echo "socket_listen() 失败的原因是:".socket_strerror($ret)."\n";
+ }
+ 
+$count = 0;
+ 
+do {
+    if (($msgsock = socket_accept($sock)) < 0) {
+         echo "socket_accept() failed: reason: " . socket_strerror($msgsock) . "\n";
+         break;
+    } else {
+         
+         //发到客户端
+         $msg ="测试成功！\n";
+         socket_write($msgsock, $msg, strlen($msg));
+         
+         echo "测试成功了啊\n";
+         $buf = socket_read($msgsock,8192);
+         
+         
+         $talkback = "收到的信息:$buf\n";
+         echo $talkback;
+         
+         if(++$count >= 5){
+             break;
+         };
+         
+     
+    }
+     //echo $buf;
+    socket_close($msgsock);
+ 
+} while (true);
+ 
+socket_close($sock);
 
 ?>
