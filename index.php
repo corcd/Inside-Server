@@ -24,8 +24,9 @@ $input = socket_read($spawn, 1024) or die("Could not read input\n");
 $jsonObj = json_decode($input, true);
 
 //读取上一步棋局，处理客户端输入并返回结果
-$output = file_get_contents('lastStep.chess');
-socket_write($spawn, $output, strlen ($output)) or die("Could not write output\n");
+//$output = file_get_contents('lastStep.chess');
+$output = "hello";
+socket_write($spawn, $output, strlen($output)) or die("Could not write output\n");
 
 //保存最新棋局
 file_put_contents('lastStep.chess', print_r($jsonObj,true));
